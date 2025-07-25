@@ -1,0 +1,58 @@
+# Added
+temp.md
+
+# Environment files
+**/.env
+**/.env.local
+**/ENV
+
+# Configuration files
+**/*.config*
+**/*_config*
+**/*-config*
+**/config.ini
+**/config.yml
+
+# Key and certificate files
+**/*.pem
+**/*.key
+**/*.crt
+
+# Database files
+**/*.sqlite
+**/*.db
+
+# Log and History files
+**/log/
+**/*.log/
+**/*.log*
+**/*_log*
+**/*-log*
+**/history/
+**/*.history/
+**/*.history*
+**/*_history*
+**/*-history*
+
+# IDE and editor files
+**/.vscode/settings.json
+**/.idea/workspace.xml
+
+# Build and dependency directories
+**/node_modules/
+**/venv/
+**/bin/
+**/obj/
+
+# Local development files
+**/*.local
+**/*.swp
+**/*.swo
+
+# Secrets and credentials
+**/secrets.yml
+**/credentials.json
+
+# Operating system files
+**/.DS_Store
+**/Thumbs.db
