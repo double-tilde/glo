@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -22,22 +23,22 @@ func getHomeDir() string {
 func getDataHome(homeDir string) string {
 	var dataHome string
 
-	// Linux
 	if dataHome = os.Getenv("XDG_DATA_HOME"); dataHome != "" {
-		return dataHome
+		dataHome = filepath.Join(dataHome, gloDirectory)
+	} else if dataHome = os.Getenv("LOCALAPPDATA"); dataHome != "" {
+		dataHome = filepath.Join(dataHome, gloDirectory)
+	} else if homeDir != "" {
+		dataHome = filepath.Join(homeDir, ".local", "share", gloDirectory)
+	} else {
+		dataHome = filepath.Join(homeDir, "."+gloDirectory)
 	}
 
-	// Windows
-	if dataHome = os.Getenv("LOCALAPPDATA"); dataHome != "" {
-		return dataHome
+	err := os.MkdirAll(dataHome, 0755)
+	if err != nil {
+		log.Fatal("Failed to create directory: ", err)
 	}
 
-	if homeDir != "" {
-		return filepath.Join(homeDir, ".local", "share")
-	}
-
-	// Last resort: store in home directory
-	return homeDir
+	return dataHome
 }
 
 func findGitDirs(startingDir string, dirs []string) []string {
@@ -93,6 +94,22 @@ func gitInfo(dir string) ([]byte, error) {
 	return out, nil
 }
 
+func collectCommits(dirs []string) []*GitCommit {
+	var commits []*GitCommit
+
+	for _, dir := range dirs {
+		output, err := gitInfo(dir)
+		if err != nil {
+			continue
+		}
+
+		formattedCommits := formatCommit(output, dir)
+		commits = append(commits, formattedCommits...)
+	}
+
+	return commits
+}
+
 func formatCommit(out []byte, dirTree string) []*GitCommit {
 	if len(out) == 0 {
 		return nil
@@ -116,11 +133,11 @@ func formatCommit(out []byte, dirTree string) []*GitCommit {
 		}
 
 		gc := GitCommit{
-			hash:      lines[0],
-			author:    lines[1],
-			directory: directory,
-			date:      date,
-			message:   lines[3],
+			Hash:      lines[0],
+			Author:    lines[1],
+			Directory: directory,
+			Date:      date,
+			Message:   lines[3],
 		}
 
 		commits = append(commits, &gc)
@@ -129,32 +146,27 @@ func formatCommit(out []byte, dirTree string) []*GitCommit {
 	return commits
 }
 
+func writeJSONFile(commits []*GitCommit, dataHome string) {
+	path := filepath.Join(dataHome, "commits.json")
+
+	data, err := json.MarshalIndent(commits, "", "  ")
+	if err != nil {
+		log.Fatalf("failed to marshal commits: %v", err)
+	}
+
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		log.Fatalf("failed to write file %s: %v", path, err)
+	}
+}
+
 func main() {
 	homeDir := getHomeDir()
-
 	dataHome := getDataHome(homeDir)
-	println(dataHome)
 
 	dirs := []string{}
 	dirs = findGitDirs(homeDir, dirs)
 
-	commits := []*GitCommit{}
+	commits := collectCommits(dirs)
 
-	for _, dir := range dirs {
-		output, err := gitInfo(dir)
-		if err != nil {
-			break
-		}
-
-		formattedCommits := formatCommit(output, dir)
-		commits = append(commits, formattedCommits...)
-	}
-
-	for _, commit := range commits {
-		fmt.Println(commit.hash)
-		fmt.Println(commit.author)
-		fmt.Println(commit.directory)
-		fmt.Println(commit.date)
-		fmt.Println(commit.message)
-	}
+	writeJSONFile(commits, dataHome)
 }

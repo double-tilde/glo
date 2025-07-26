@@ -3,14 +3,15 @@ package main
 import "time"
 
 type GitCommit struct {
-	hash      string
-	author    string
-	directory string
-	date      time.Time
-	message   string
+	Hash      string    `json:"hash"`
+	Author    string    `json:"author"`
+	Directory string    `json:"directory"`
+	Date      time.Time `json:"date"`
+	Message   string    `json:"message"`
 }
 
 var (
+	gloDirectory     = "glo"
 	gitDirectory     = ".git"
 	timeFormat       = "2006-01-02 15:04"
 	commandSeperator = "----"
