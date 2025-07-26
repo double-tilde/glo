@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +15,8 @@ import (
 func getHomeDir() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(err)
+		// TODO: Make all errors slog, log them and find best way to exit
+		slog.Error("No home directory found.", "Error", err)
 	}
 
 	return homeDir
