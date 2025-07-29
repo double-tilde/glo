@@ -52,6 +52,7 @@ outside:
 	for _, content := range contents {
 		for _, ignoreDir := range ignoreDirs {
 			if ignoreDir == content.Name() {
+				clog.Info("Ignoring " + ignoreDir)
 				continue outside
 			}
 		}
@@ -84,7 +85,10 @@ func gitInfo(dir string) ([]byte, error) {
 
 	out, err := cmd.Output()
 	if err != nil {
-		clog.Info("Could not find git history. Hint: Check there are commits in this repo", err)
+		clog.Warn(
+			"Could not find git history. Hint: Check there are commits in this repo: "+dir,
+			err,
+		)
 		return nil, err
 	}
 
@@ -97,7 +101,10 @@ func collectCommits(dirs []string) []*GitCommit {
 	for _, dir := range dirs {
 		output, err := gitInfo(dir)
 		if err != nil {
-			clog.Info("Could not find git history. Hint: Check there are commits in this repo", err)
+			clog.Warn(
+				"Could not find git history. Hint: Check there are commits in this repo: "+dir,
+				err,
+			)
 			continue
 		}
 

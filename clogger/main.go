@@ -40,6 +40,15 @@ var levelColors = map[int]string{
 	LevelFatal: "\033[35m", // Magenta
 }
 
+type logEntry struct {
+	Time  string `json:"time"`
+	Level string `json:"level"`
+	Msg   string `json:"msg"`
+	File  string `json:"file"`
+	Line  int    `json:"line"`
+	Info  string `json:"info"`
+}
+
 const resetColor = "\033[0m"
 
 type contextKey string
@@ -64,34 +73,6 @@ func New(filePath string) *Clogger {
 	}
 }
 
-func (l *Clogger) log(level int, msg string, err error) {
-	_, file, line, _ := runtime.Caller(2)
-	shortFile := shortFilePath(file)
-
-	ctx := context.WithValue(context.Background(), keyCallerFile, shortFile)
-	ctx = context.WithValue(ctx, keyCallerLine, line)
-
-	color := levelColors[level]
-	levelLabel := levelNames[level]
-	timestamp := time.Now().Format("15:04:05")
-	fmt.Printf("%s[%s]%s %s %s:%d %s - details: %s\n",
-		color, levelLabel, resetColor, timestamp, shortFile, line, msg, err)
-
-	entry := map[string]any{
-		"time":    time.Now().Format(time.RFC3339),
-		"level":   levelLabel,
-		"msg":     msg,
-		"file":    ctx.Value(keyCallerFile),
-		"line":    ctx.Value(keyCallerLine),
-		"details": err,
-	}
-	_ = l.writeJSON(entry)
-
-	if level == LevelFatal {
-		os.Exit(1)
-	}
-}
-
 func shortFilePath(fullPath string) string {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -104,17 +85,85 @@ func shortFilePath(fullPath string) string {
 	return rel
 }
 
-func (l *Clogger) writeJSON(entry map[string]any) error {
+func (l *Clogger) writeJSON(entry logEntry) error {
 	enc := json.NewEncoder(l.jsonLogFile)
+	enc.SetIndent("", "  ")
+
 	return enc.Encode(entry)
 }
 
-func (l *Clogger) Trace(msg string, err error) { l.log(LevelTrace, msg, err) }
-func (l *Clogger) Debug(msg string, err error)  { l.log(LevelDebug, msg, err) }
-func (l *Clogger) Info(msg string, err error)   { l.log(LevelInfo, msg, err) }
-func (l *Clogger) Warn(msg string, err error)   { l.log(LevelWarn, msg, err) }
-func (l *Clogger) Error(msg string, err error)  { l.log(LevelError, msg, err) }
-func (l *Clogger) Fatal(msg string, err error)  { l.log(LevelFatal, msg, err) }
+func getCallerInfo(level int) (int, string, context.Context, string, string, string) {
+	_, file, line, _ := runtime.Caller(3)
+	shortFile := shortFilePath(file)
+
+	ctx := context.WithValue(context.Background(), keyCallerFile, shortFile)
+	ctx = context.WithValue(ctx, keyCallerLine, line)
+
+	color := levelColors[level]
+	levelLabel := levelNames[level]
+	timestamp := time.Now().Format("15:04:05")
+
+	return line, shortFile, ctx, color, levelLabel, timestamp
+}
+
+func (l *Clogger) log(level int, msg string) {
+	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
+
+	fmt.Printf("%s[%s]%s %s %s:%d %s\n",
+		color, levelLabel, resetColor, timestamp, shortFile, line, msg)
+
+	file, _ := ctx.Value(keyCallerFile).(string)
+	lineNum, _ := ctx.Value(keyCallerLine).(int)
+
+	entry := logEntry{
+		Time:  time.Now().Format(time.RFC3339),
+		Level: levelLabel,
+		Msg:   msg,
+		File:  file,
+		Line:  lineNum,
+		Info:  "",
+	}
+
+	_ = l.writeJSON(entry)
+}
+
+func (l *Clogger) logError(level int, msg string, err error) {
+	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
+
+	fmt.Printf("%s[%s]%s %s %s:%d %s - %v\n",
+		color, levelLabel, resetColor, timestamp, shortFile, line, msg, err)
+
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	file, _ := ctx.Value(keyCallerFile).(string)
+	lineNum, _ := ctx.Value(keyCallerLine).(int)
+
+	entry := logEntry{
+		Time:  time.Now().Format(time.RFC3339),
+		Level: levelLabel,
+		Msg:   msg,
+		File:  file,
+		Line:  lineNum,
+		Info:  errMsg,
+	}
+
+	_ = l.writeJSON(entry)
+
+	if level == LevelFatal {
+		os.Exit(1)
+	}
+}
+
+func (l *Clogger) Trace(msg string) { l.log(LevelTrace, msg) }
+func (l *Clogger) Debug(msg string) { l.log(LevelDebug, msg) }
+func (l *Clogger) Info(msg string)  { l.log(LevelInfo, msg) }
+
+func (l *Clogger) Warn(msg string, err error)  { l.logError(LevelWarn, msg, err) }
+func (l *Clogger) Error(msg string, err error) { l.logError(LevelError, msg, err) }
+func (l *Clogger) Fatal(msg string, err error) { l.logError(LevelFatal, msg, err) }
 
 func (l *Clogger) Close() error {
 	return l.jsonLogFile.Close()
