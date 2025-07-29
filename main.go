@@ -84,7 +84,7 @@ func gitInfo(dir string) ([]byte, error) {
 
 	out, err := cmd.Output()
 	if err != nil {
-		clog.Warn("Could not find git history. Hint: Check there are commits in this repo", err)
+		clog.Info("Could not find git history. Hint: Check there are commits in this repo", err)
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func collectCommits(dirs []string) []*GitCommit {
 	for _, dir := range dirs {
 		output, err := gitInfo(dir)
 		if err != nil {
-			clog.Warn("Could not find git history for this repository", err)
+			clog.Info("Could not find git history. Hint: Check there are commits in this repo", err)
 			continue
 		}
 
