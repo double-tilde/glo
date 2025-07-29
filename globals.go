@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"time"
+
+	"github.com/double-tilde/glo/clogger"
+)
 
 type GitCommit struct {
 	Hash      string    `json:"hash"`
@@ -17,6 +21,8 @@ var (
 	commandSeperator = "----"
 	commandLines     = 4
 )
+
+var clog *clogger.Clogger
 
 var (
 	gitCommand = []string{

@@ -2,21 +2,20 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/double-tilde/glo/clogger"
 )
 
 func getHomeDir() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		// TODO: Make all errors slog, log them and find best way to exit
-		slog.Error("No home directory found.", "Error", err)
+		log.Fatal("No home directory found", err)
 	}
 
 	return homeDir
@@ -85,11 +84,7 @@ func gitInfo(dir string) ([]byte, error) {
 
 	out, err := cmd.Output()
 	if err != nil {
-		fmt.Printf(
-			"Error getting repo info for directory %s: %v\nHint: Check there are commits in this Repo.\n",
-			dir,
-			err,
-		)
+		clog.Warn("Could not find git history. Hint: Check there are commits in this repo", err)
 		return nil, err
 	}
 
@@ -102,6 +97,7 @@ func collectCommits(dirs []string) []*GitCommit {
 	for _, dir := range dirs {
 		output, err := gitInfo(dir)
 		if err != nil {
+			clog.Warn("Could not find git history for this repository", err)
 			continue
 		}
 
@@ -130,7 +126,7 @@ func formatCommit(out []byte, dirTree string) []*GitCommit {
 
 		date, err := time.Parse(timeFormat, lines[2])
 		if err != nil {
-			fmt.Printf("Error parsing date: %v\n", err)
+			clog.Error("Failed to format time of commit", err)
 			continue
 		}
 
@@ -153,17 +149,25 @@ func writeJSONFile(commits []*GitCommit, dataHome string) {
 
 	data, err := json.MarshalIndent(commits, "", "  ")
 	if err != nil {
-		log.Fatalf("failed to marshal commits: %v", err)
+		clog.Fatal("Failed to marshal commits", err)
 	}
 
 	if err := os.WriteFile(path, data, 0644); err != nil {
-		log.Fatalf("failed to write file %s: %v", path, err)
+		clog.Fatal("Failed to write to file", err)
 	}
 }
 
 func main() {
 	homeDir := getHomeDir()
 	dataHome := getDataHome(homeDir)
+
+	gloLogFile := filepath.Join(dataHome, "glo.log")
+	clog = clogger.New(gloLogFile)
+	defer func() {
+		if err := clog.Close(); err != nil {
+			log.Fatal("Error closing log file")
+		}
+	}()
 
 	dirs := []string{}
 	dirs = findGitDirs(homeDir, dirs)
