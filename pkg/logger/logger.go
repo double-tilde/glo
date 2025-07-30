@@ -1,4 +1,4 @@
-package clogger
+package logger
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// clogger - colourful log
+// TODO: Return errors, do not rely on other packages inside pkg
 
 const (
 	LevelTrace = -8
@@ -57,6 +57,8 @@ const (
 	keyCallerFile contextKey = "caller_file"
 	keyCallerLine contextKey = "caller_line"
 )
+
+// Clogger - colourful log
 
 type Clogger struct {
 	jsonLogFile *os.File

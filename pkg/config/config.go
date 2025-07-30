@@ -1,37 +1,21 @@
-package main
-
-import (
-	"time"
-
-	"github.com/double-tilde/glo/clogger"
-)
-
-type GitCommit struct {
-	Hash      string    `json:"hash"`
-	Author    string    `json:"author"`
-	Directory string    `json:"directory"`
-	Date      time.Time `json:"date"`
-	Message   string    `json:"message"`
-}
+package config
 
 var (
-	gloDirectory     = "glo"
-	gitDirectory     = ".git"
-	timeFormat       = "2006-01-02 15:04"
-	commandSeperator = "----"
-	commandLines     = 4
+	GloDirectory     = "glo"
+	GitDirectory     = ".git"
+	TimeFormat       = "2006-01-02 15:04"
+	CommandSeperator = "----"
+	CommandLines     = 4
 )
 
-var clog *clogger.Clogger
-
 var (
-	gitCommand = []string{
+	GitCommand = []string{
 		"git",
 		"log",
-		"--pretty=format:%H\n%an\n%ad\n%s\n" + commandSeperator,
+		"--pretty=format:%H\n%an\n%ad\n%s\n" + CommandSeperator,
 		"--date=format:%Y-%m-%d %H:%M",
 	}
-	ignoreDirs = []string{
+	IgnoreDirs = []string{
 		".android",
 		".android-studio",
 		".anjuta",
