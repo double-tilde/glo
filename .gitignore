@@ -1,5 +1,6 @@
-# Added
-temp.md
+# Temp files
+**/*.temp
+**/temp.*
 
 # Environment files
 **/.env
