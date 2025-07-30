@@ -26,7 +26,7 @@ func GitInfo(dir string) ([]byte, error) {
 		// 	"Could not find git history. Hint: Check there are commits in this repo: "+dir,
 		// 	err,
 		// )
-		log.Fatal(err)
+		// log.Fatal(err)
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func CollectCommits(dirs []string) []*model.GitCommit {
 			// 	"Could not find git history. Hint: Check there are commits in this repo: "+dir,
 			// 	err,
 			// )
-			log.Fatal(err)
+			// log.Fatal(err)
 			continue
 		}
 
