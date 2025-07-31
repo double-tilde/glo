@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/double-tilde/glo/pkg/data"
 	"github.com/double-tilde/glo/pkg/fs"
 )
@@ -24,7 +26,13 @@ func main() {
 	dirs := []string{}
 	dirs = fs.FindGitDirs(homeDir, dirs)
 
-	commits := data.CollectCommits(dirs)
+	commits, err := data.CollectCommits(dirs)
+	if err != nil {
+		log.Println(err)
+	}
 
-	data.WriteJSONFile(commits, dataHome)
+	err = data.WriteJSONFile(commits, dataHome)
+	if err != nil {
+		log.Println(err)
+	}
 }

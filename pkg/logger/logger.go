@@ -49,7 +49,7 @@ type logEntry struct {
 	Info  string `json:"info"`
 }
 
-const resetColor = "\033[0m"
+const ResetColor = "\033[0m"
 
 type contextKey string
 
@@ -112,7 +112,7 @@ func (l *Clogger) log(level int, msg string) {
 	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
 
 	fmt.Printf("%s[%s]%s %s %s:%d %s\n",
-		color, levelLabel, resetColor, timestamp, shortFile, line, msg)
+		color, levelLabel, ResetColor, timestamp, shortFile, line, msg)
 
 	file, _ := ctx.Value(keyCallerFile).(string)
 	lineNum, _ := ctx.Value(keyCallerLine).(int)
@@ -133,7 +133,7 @@ func (l *Clogger) logError(level int, msg string, err error) {
 	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
 
 	fmt.Printf("%s[%s]%s %s %s:%d %s - %v\n",
-		color, levelLabel, resetColor, timestamp, shortFile, line, msg, err)
+		color, levelLabel, ResetColor, timestamp, shortFile, line, msg, err)
 
 	var errMsg string
 	if err != nil {
