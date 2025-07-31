@@ -10,10 +10,7 @@ import (
 	"github.com/double-tilde/glo/pkg/config"
 )
 
-var (
-	dirs          []string
-	ErrReadingDir = errors.New("error reading directory")
-)
+var dirs []string
 
 func GetHomeDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
@@ -48,7 +45,7 @@ func GetDataHome(homeDir string) (string, error) {
 func FindGitDirs(startingDir string) ([]string, error) {
 	contents, err := os.ReadDir(startingDir)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrReadingDir, err)
+		return nil, fmt.Errorf("error reading directory: %v", err)
 	}
 
 outside:

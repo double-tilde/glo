@@ -7,7 +7,7 @@ var (
 	TimeFormat       = "2006-01-02 15:04"
 	CommandSeperator = "----"
 	CommandLines     = 4
-	LogIgnoreDirs   = false
+	LogIgnoreDirs   = true
 	GitCommand       = []string{
 		"git",
 		"log",
@@ -35,6 +35,7 @@ var (
 		".buildkite",
 		".buddy",
 		".cabal",
+		"cache",
 		".cache",
 		".cargo",
 		".catkin",
@@ -105,6 +106,7 @@ var (
 		".npm",
 		".nuget",
 		".oc",
+		".obsidian",
 		".openshift",
 		".pacman",
 		".parcel-cache",
