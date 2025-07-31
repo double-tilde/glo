@@ -1,6 +1,8 @@
 package fs
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -8,18 +10,21 @@ import (
 	"github.com/double-tilde/glo/pkg/config"
 )
 
-// TODO: Return errors, do not rely on other packages
+var (
+	dirs          []string
+	ErrReadingDir = errors.New("error reading directory")
+)
 
-func GetHomeDir() string {
+func GetHomeDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal("No home directory found", err)
+		return "", errors.New("no home directory found")
 	}
 
-	return homeDir
+	return homeDir, nil
 }
 
-func GetDataHome(homeDir string) string {
+func GetDataHome(homeDir string) (string, error) {
 	var dataHome string
 
 	if dataHome = os.Getenv("XDG_DATA_HOME"); dataHome != "" {
@@ -34,23 +39,25 @@ func GetDataHome(homeDir string) string {
 
 	err := os.MkdirAll(dataHome, 0755)
 	if err != nil {
-		log.Fatal("Failed to create directory: ", err)
+		return "", errors.New("failed to create data directory")
 	}
 
-	return dataHome
+	return dataHome, nil
 }
 
-func FindGitDirs(startingDir string, dirs []string) []string {
+func FindGitDirs(startingDir string) ([]string, error) {
 	contents, err := os.ReadDir(startingDir)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("%w: %v", ErrReadingDir, err)
 	}
 
 outside:
 	for _, content := range contents {
 		for _, ignoreDir := range config.IgnoreDirs {
 			if ignoreDir == content.Name() {
-				// clog.Info("Ignoring " + ignoreDir)
+				if config.LogIgnoreDirs {
+					log.Println("ignoring directory", ignoreDir)
+				}
 				continue outside
 			}
 		}
@@ -58,21 +65,20 @@ outside:
 		if content.IsDir() {
 			path := filepath.Join(startingDir, content.Name())
 
-			dir, err := os.ReadDir(path)
+			gitPath := filepath.Join(path, config.GitDirectory)
+			if _, err := os.Stat(gitPath); err == nil {
+				dirs = append(dirs, path)
+				continue
+			}
+
+			subDirs, err := FindGitDirs(path)
 			if err != nil {
-				log.Fatal(err)
+				return nil, err
 			}
 
-			for _, entry := range dir {
-				if entry.Name() == config.GitDirectory {
-					dirs = append(dirs, path)
-					break
-				}
-			}
-
-			dirs = FindGitDirs(path, dirs)
+			dirs = subDirs
 		}
 	}
 
-	return dirs
+	return dirs, nil
 }

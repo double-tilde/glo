@@ -10,8 +10,15 @@ import (
 	"time"
 
 	"github.com/double-tilde/glo/pkg/config"
-	"github.com/double-tilde/glo/pkg/model"
 )
+
+type GitCommit struct {
+	Hash      string    `json:"hash"`
+	Author    string    `json:"author"`
+	Directory string    `json:"directory"`
+	Date      time.Time `json:"date"`
+	Message   string    `json:"message"`
+}
 
 // TODO: Return errors, do not rely on other packages
 
@@ -46,14 +53,14 @@ func gitInfo(dir string) ([]byte, error) {
 //
 // Returns:
 //
-//	[]*model.GitCommit: the formmatted commit.
+//	[]*GitCommit: the formmatted commit.
 //	error: an error if there is no output, or if the output cannot be formatted.
-func formatCommit(dirTree string, out []byte) ([]*model.GitCommit, error) {
+func formatCommit(dirTree string, out []byte) ([]*GitCommit, error) {
 	if len(out) == 0 {
 		return nil, errors.New("no output to commit")
 	}
 
-	commits := []*model.GitCommit{}
+	commits := []*GitCommit{}
 
 	for block := range strings.SplitSeq(string(out), config.CommandSeperator+"\n") {
 		lines := strings.Split(block, "\n")
@@ -70,7 +77,7 @@ func formatCommit(dirTree string, out []byte) ([]*model.GitCommit, error) {
 			// continue
 		}
 
-		gc := model.GitCommit{
+		gc := GitCommit{
 			Hash:      lines[0],
 			Author:    lines[1],
 			Directory: directory,
@@ -91,10 +98,10 @@ func formatCommit(dirTree string, out []byte) ([]*model.GitCommit, error) {
 //
 // Returns:
 //
-//	[]*model.GitCommit: the formmated commits stored in a slice.
+//	[]*GitCommit: the formmated commits stored in a slice.
 //	error: an error if the git command cannot return an output.
-func CollectCommits(dirs []string) ([]*model.GitCommit, error) {
-	var commits []*model.GitCommit
+func CollectCommits(dirs []string) ([]*GitCommit, error) {
+	var commits []*GitCommit
 
 	for _, dir := range dirs {
 		output, err := gitInfo(dir)
@@ -119,7 +126,7 @@ func CollectCommits(dirs []string) ([]*model.GitCommit, error) {
 // Returns:
 //
 //	error: an error if the json cannot be mashaled or if the file cannot be written to.
-func WriteJSONFile(commits []*model.GitCommit, dataHome string) error {
+func WriteJSONFile(commits []*GitCommit, dataHome string) error {
 	path := filepath.Join(dataHome, config.GloCommitsFile)
 
 	data, err := json.MarshalIndent(commits, "", "  ")

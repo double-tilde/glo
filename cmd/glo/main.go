@@ -1,19 +1,29 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
-	"github.com/double-tilde/glo/pkg/data"
 	"github.com/double-tilde/glo/pkg/fs"
 )
 
-// TODO: main calls will go here
-
 // var clog *logger.Clogger
 
+// TODO: replace logs with clogs?
+
 func main() {
-	homeDir := fs.GetHomeDir()
-	dataHome := fs.GetDataHome(homeDir)
+	homeDir, err := fs.GetHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dataHome, err := fs.GetDataHome(homeDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO: remove
+	fmt.Println(dataHome)
 
 	// gloLogFile := filepath.Join(dataHome, "glo.log")
 	// clog = logger.New(gloLogFile)
@@ -23,16 +33,23 @@ func main() {
 	// 	}
 	// }()
 
-	dirs := []string{}
-	dirs = fs.FindGitDirs(homeDir, dirs)
-
-	commits, err := data.CollectCommits(dirs)
+	dirs, err := fs.FindGitDirs(homeDir)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 
-	err = data.WriteJSONFile(commits, dataHome)
-	if err != nil {
-		log.Println(err)
+	// TODO: remove
+	for _, dir := range dirs {
+		fmt.Println(dir)
 	}
+
+	// commits, err := data.CollectCommits(dirs)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	//
+	// err = data.WriteJSONFile(commits, dataHome)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 }
