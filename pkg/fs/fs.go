@@ -21,28 +21,47 @@ func GetHomeDir() (string, error) {
 	return homeDir, nil
 }
 
-func GetDataHome(homeDir string) (string, error) {
-	var dataHome string
+func GetDataHomeDir(homeDir string) (string, error) {
+	var dataHomeDir string
 
-	if dataHome = os.Getenv("XDG_DATA_HOME"); dataHome != "" {
-		dataHome = filepath.Join(dataHome, config.GloDirectory)
-	} else if dataHome = os.Getenv("LOCALAPPDATA"); dataHome != "" {
-		dataHome = filepath.Join(dataHome, config.GloDirectory)
+	if dataHomeDir = os.Getenv("XDG_DATA_HOME"); dataHomeDir != "" {
+		dataHomeDir = filepath.Join(dataHomeDir, config.GloDirectory)
+	} else if dataHomeDir = os.Getenv("LOCALAPPDATA"); dataHomeDir != "" {
+		dataHomeDir = filepath.Join(dataHomeDir, config.GloDirectory)
 	} else if homeDir != "" {
-		dataHome = filepath.Join(homeDir, ".local", "share", config.GloDirectory)
+		dataHomeDir = filepath.Join(homeDir, ".local", "share", config.GloDirectory)
 	} else {
-		dataHome = filepath.Join(homeDir, "."+config.GloDirectory)
+		dataHomeDir = filepath.Join(homeDir, config.GloHomeDirectory)
 	}
 
-	err := os.MkdirAll(dataHome, 0755)
+	err := os.MkdirAll(dataHomeDir, 0755)
 	if err != nil {
 		return "", errors.New("failed to create data directory")
 	}
 
-	return dataHome, nil
+	return dataHomeDir, nil
 }
 
-func FindGitDirs(startingDir string) ([]string, error) {
+func GetUserConfigHomeDir(homeDir string) (string, error) {
+	var configHomeDir string
+
+	if configHomeDir = os.Getenv("XDG_CONFIG_HOME"); configHomeDir != "" {
+		configHomeDir = filepath.Join(configHomeDir, config.GloDirectory)
+	} else if homeDir != "" {
+		configHomeDir = filepath.Join(homeDir, ".config", config.GloDirectory)
+	} else {
+		configHomeDir = filepath.Join(homeDir, config.GloHomeDirectory)
+	}
+
+	err := os.MkdirAll(configHomeDir, 0755)
+	if err != nil {
+		return "", errors.New("failed to create config directory")
+	}
+
+	return configHomeDir, nil
+}
+
+func FindGitDirs(startingDir string, cfg *config.Config) ([]string, error) {
 	contents, err := os.ReadDir(startingDir)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory: %v", err)
@@ -52,7 +71,7 @@ outside:
 	for _, content := range contents {
 		for _, ignoreDir := range config.IgnoreDirs {
 			if ignoreDir == content.Name() {
-				if config.LogIgnoreDirs {
+				if cfg.LogInfoMessages {
 					slog.Info("ignoring directory " + ignoreDir)
 				}
 				continue outside
@@ -68,7 +87,7 @@ outside:
 				continue
 			}
 
-			subDirs, err := FindGitDirs(path)
+			subDirs, err := FindGitDirs(path, cfg)
 			if err != nil {
 				return nil, err
 			}

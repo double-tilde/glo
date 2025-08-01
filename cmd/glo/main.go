@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log/slog"
 	"os"
 
@@ -17,34 +16,40 @@ func main() {
 		os.Exit(1)
 	}
 
-	dataHome, err := fs.GetDataHome(homeDir)
+	dataHome, err := fs.GetDataHomeDir(homeDir)
 	if err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)
 	}
 
-	if err := logger.Init(homeDir, dataHome, config.LogFileName); err != nil {
-		slog.Error("fatal", "error", err)
-		os.Exit(1)
-	}
-
-	dirs, err := fs.FindGitDirs(homeDir)
+	configHome, err := fs.GetUserConfigHomeDir(homeDir)
 	if err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)
 	}
 
-	// TODO: remove
-	slog.Info(dataHome)
+	if err := logger.Setup(homeDir, dataHome, config.LogFileName); err != nil {
+		slog.Error("fatal", "error", err)
+		os.Exit(1)
+	}
+
+	if err := config.Setup(configHome); err != nil {
+		slog.Error("fatal", "error", err)
+		os.Exit(1)
+	}
+
+	cfg := config.New()
+
+	dirs, err := fs.FindGitDirs(homeDir, cfg)
+	if err != nil {
+		slog.Error("fatal", "error", err)
+		os.Exit(1)
+	}
 
 	// TODO: remove
 	for _, dir := range dirs {
 		slog.Info(dir)
 	}
-
-	err = errors.New("the bad thing")
-	slog.Error("something went wrong", "error", err)
-	os.Exit(1)
 
 	// commits, err := data.CollectCommits(dirs)
 	// if err != nil {

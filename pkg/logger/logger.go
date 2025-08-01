@@ -46,7 +46,7 @@ func (m *MultiHandler) WithGroup(name string) slog.Handler {
 	return &MultiHandler{Handlers: newHandlers}
 }
 
-func Init(homeDir, dataHome, logFileName string) error {
+func Setup(homeDir, dataHome, logFileName string) error {
 	logFilePath := filepath.Join(dataHome, logFileName)
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {

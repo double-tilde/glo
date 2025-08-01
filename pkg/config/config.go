@@ -1,10 +1,42 @@
 package config
 
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
+
+type Config struct {
+	LogInfoMessages bool
+}
+
+func Setup(configHome string) error {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	// viper.AddConfigPath("$DATA_CONFIG_HOME/" + GloDirectory)
+	// viper.AddConfigPath("/etc/" + GloDirectory)
+	viper.AddConfigPath(configHome)
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return fmt.Errorf("fatal error config file: %w", err)
+	}
+
+	return nil
+}
+
+func New() *Config {
+	return &Config{
+		LogInfoMessages: viper.GetBool("log-info-messages"),
+	}
+}
+
 var (
 	GloDirectory     = "glo"
+	GloHomeDirectory = "." + GloDirectory
 	GloCommitsFile   = "glo.json"
 	LogFileName      = "glo.log"
-	LogIgnoreDirs    = true
 	GitDirectory     = ".git"
 	TimeFormat       = "2006-01-02 15:04"
 	CommandSeperator = "----"
