@@ -2,171 +2,69 @@ package logger
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
+
+	"github.com/lmittmann/tint"
 )
 
-// TODO: Return errors, do not rely on other packages inside pkg
-
-const (
-	LevelTrace = -8
-	LevelDebug = -4
-	LevelInfo  = 0
-	LevelWarn  = 4
-	LevelError = 8
-	LevelFatal = 12
-)
-
-var levelNames = map[int]string{
-	LevelTrace: "TRACE",
-	LevelDebug: "DEBUG",
-	LevelInfo:  "INFO",
-	LevelWarn:  "WARN",
-	LevelError: "ERROR",
-	LevelFatal: "FATAL",
+type MultiHandler struct {
+	Handlers []slog.Handler
 }
 
-var levelColors = map[int]string{
-	LevelTrace: "\033[36m", // Cyan
-	LevelDebug: "\033[34m", // Blue
-	LevelInfo:  "\033[32m", // Green
-	LevelWarn:  "\033[33m", // Yellow
-	LevelError: "\033[31m", // Red
-	LevelFatal: "\033[35m", // Magenta
+func (m *MultiHandler) Enabled(ctx context.Context, l slog.Level) bool {
+	for _, h := range m.Handlers {
+		if h.Enabled(ctx, l) {
+			return true
+		}
+	}
+	return false
 }
 
-type logEntry struct {
-	Time  string `json:"time"`
-	Level string `json:"level"`
-	Msg   string `json:"msg"`
-	File  string `json:"file"`
-	Line  int    `json:"line"`
-	Info  string `json:"info"`
+func (m *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
+	for _, h := range m.Handlers {
+		_ = h.Handle(ctx, r)
+	}
+	return nil
 }
 
-const ResetColor = "\033[0m"
-
-type contextKey string
-
-const (
-	keyCallerFile contextKey = "caller_file"
-	keyCallerLine contextKey = "caller_line"
-)
-
-// Clogger - colourful log
-
-type Clogger struct {
-	jsonLogFile *os.File
+func (m *MultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	newHandlers := make([]slog.Handler, len(m.Handlers))
+	for i, h := range m.Handlers {
+		newHandlers[i] = h.WithAttrs(attrs)
+	}
+	return &MultiHandler{Handlers: newHandlers}
 }
 
-func New(filePath string) *Clogger {
-	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func (m *MultiHandler) WithGroup(name string) slog.Handler {
+	newHandlers := make([]slog.Handler, len(m.Handlers))
+	for i, h := range m.Handlers {
+		newHandlers[i] = h.WithGroup(name)
+	}
+	return &MultiHandler{Handlers: newHandlers}
+}
+
+func Init(homeDir, dataHome, logFileName string) error {
+	logFilePath := filepath.Join(dataHome, logFileName)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatal("failed to open log file: ", err)
+		return err
 	}
 
-	return &Clogger{
-		jsonLogFile: f,
-	}
-}
+	textHandler := tint.NewHandler(os.Stdout, &tint.Options{
+		Level:      slog.LevelDebug,
+		TimeFormat: time.DateTime,
+	})
 
-func shortFilePath(fullPath string) string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return fullPath
-	}
-	rel, err := filepath.Rel(wd, fullPath)
-	if err != nil {
-		return fullPath
-	}
-	return rel
-}
+	jsonHandler := slog.NewJSONHandler(logFile, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})
 
-func (l *Clogger) writeJSON(entry logEntry) error {
-	enc := json.NewEncoder(l.jsonLogFile)
-	enc.SetIndent("", "  ")
+	multi := &MultiHandler{Handlers: []slog.Handler{textHandler, jsonHandler}}
+	logger := slog.New(multi)
+	slog.SetDefault(logger)
 
-	return enc.Encode(entry)
-}
-
-func getCallerInfo(level int) (int, string, context.Context, string, string, string) {
-	_, file, line, _ := runtime.Caller(3)
-	shortFile := shortFilePath(file)
-
-	ctx := context.WithValue(context.Background(), keyCallerFile, shortFile)
-	ctx = context.WithValue(ctx, keyCallerLine, line)
-
-	color := levelColors[level]
-	levelLabel := levelNames[level]
-	timestamp := time.Now().Format("15:04:05")
-
-	return line, shortFile, ctx, color, levelLabel, timestamp
-}
-
-func (l *Clogger) log(level int, msg string) {
-	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
-
-	fmt.Printf("%s[%s]%s %s %s:%d %s\n",
-		color, levelLabel, ResetColor, timestamp, shortFile, line, msg)
-
-	file, _ := ctx.Value(keyCallerFile).(string)
-	lineNum, _ := ctx.Value(keyCallerLine).(int)
-
-	entry := logEntry{
-		Time:  time.Now().Format(time.RFC3339),
-		Level: levelLabel,
-		Msg:   msg,
-		File:  file,
-		Line:  lineNum,
-		Info:  "",
-	}
-
-	_ = l.writeJSON(entry)
-}
-
-func (l *Clogger) logError(level int, msg string, err error) {
-	line, shortFile, ctx, color, levelLabel, timestamp := getCallerInfo(level)
-
-	fmt.Printf("%s[%s]%s %s %s:%d %s - %v\n",
-		color, levelLabel, ResetColor, timestamp, shortFile, line, msg, err)
-
-	var errMsg string
-	if err != nil {
-		errMsg = err.Error()
-	}
-
-	file, _ := ctx.Value(keyCallerFile).(string)
-	lineNum, _ := ctx.Value(keyCallerLine).(int)
-
-	entry := logEntry{
-		Time:  time.Now().Format(time.RFC3339),
-		Level: levelLabel,
-		Msg:   msg,
-		File:  file,
-		Line:  lineNum,
-		Info:  errMsg,
-	}
-
-	_ = l.writeJSON(entry)
-
-	if level == LevelFatal {
-		os.Exit(1)
-	}
-}
-
-func (l *Clogger) Trace(msg string) { l.log(LevelTrace, msg) }
-func (l *Clogger) Debug(msg string) { l.log(LevelDebug, msg) }
-func (l *Clogger) Info(msg string)  { l.log(LevelInfo, msg) }
-
-func (l *Clogger) Warn(msg string, err error)  { l.logError(LevelWarn, msg, err) }
-func (l *Clogger) Error(msg string, err error) { l.logError(LevelError, msg, err) }
-func (l *Clogger) Fatal(msg string, err error) { l.logError(LevelFatal, msg, err) }
-
-func (l *Clogger) Close() error {
-	return l.jsonLogFile.Close()
+	return nil
 }

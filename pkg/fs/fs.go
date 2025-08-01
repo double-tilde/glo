@@ -3,7 +3,7 @@ package fs
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -53,7 +53,7 @@ outside:
 		for _, ignoreDir := range config.IgnoreDirs {
 			if ignoreDir == content.Name() {
 				if config.LogIgnoreDirs {
-					log.Println("ignoring directory", ignoreDir)
+					slog.Info("ignoring directory " + ignoreDir)
 				}
 				continue outside
 			}
