@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/double-tilde/glo/pkg/config"
+	"github.com/double-tilde/glo/pkg/data"
 	"github.com/double-tilde/glo/pkg/fs"
 	"github.com/double-tilde/glo/pkg/logger"
 )
@@ -40,24 +41,21 @@ func main() {
 
 	cfg := config.New()
 
-	dirs, err := fs.FindGitDirs(homeDir, cfg)
+	dirs, err := fs.FindGitDirs(cfg, homeDir)
 	if err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)
 	}
 
-	// TODO: remove
-	for _, dir := range dirs {
-		slog.Info(dir)
+	commits, logs := data.CollectCommits(dirs)
+	if len(logs) > 0 && cfg.LogMessages {
+		for _, log := range logs {
+			slog.Warn("does this repository have any commits?", "error", log)
+		}
 	}
 
-	// commits, err := data.CollectCommits(dirs)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	//
-	// err = data.WriteJSONFile(commits, dataHome)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
+	err = data.WriteJSONFile(commits, dataHome)
+	if err != nil {
+		slog.Warn("warn", "error", err)
+	}
 }

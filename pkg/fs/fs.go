@@ -61,7 +61,7 @@ func GetUserConfigHomeDir(homeDir string) (string, error) {
 	return configHomeDir, nil
 }
 
-func FindGitDirs(startingDir string, cfg *config.Config) ([]string, error) {
+func FindGitDirs(cfg *config.Config, startingDir string) ([]string, error) {
 	contents, err := os.ReadDir(startingDir)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory: %v", err)
@@ -69,9 +69,9 @@ func FindGitDirs(startingDir string, cfg *config.Config) ([]string, error) {
 
 outside:
 	for _, content := range contents {
-		for _, ignoreDir := range config.IgnoreDirs {
+		for _, ignoreDir := range cfg.IgnoreDirs {
 			if ignoreDir == content.Name() {
-				if cfg.LogInfoMessages {
+				if cfg.LogMessages {
 					slog.Info("ignoring directory " + ignoreDir)
 				}
 				continue outside
@@ -87,7 +87,7 @@ outside:
 				continue
 			}
 
-			subDirs, err := FindGitDirs(path, cfg)
+			subDirs, err := FindGitDirs(cfg, path)
 			if err != nil {
 				return nil, err
 			}
