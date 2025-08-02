@@ -21,8 +21,6 @@ type GitCommit struct {
 	Message   string    `json:"message"`
 }
 
-// TODO: Return errors, do not rely on other packages
-
 func GitInfo(dir string) ([]byte, error) {
 	cmd := exec.Command(config.GitCommand[0], config.GitCommand[1:]...)
 	cmd.Dir = dir
@@ -35,7 +33,6 @@ func GitInfo(dir string) ([]byte, error) {
 	return out, nil
 }
 
-// TODO: Does the formatCommit function need refactoring?
 func FormatCommit(dirTree string, out []byte) ([]*GitCommit, error) {
 	if len(out) == 0 {
 		return nil, errors.New("no output to commit")
