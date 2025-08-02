@@ -69,28 +69,28 @@ func FormatCommit(dirTree string, out []byte) ([]*GitCommit, error) {
 	return commits, nil
 }
 
-func CollectCommits(dirs []string) ([]*GitCommit, []string) {
+func CollectCommits(dirs []string) ([]*GitCommit, []error) {
 	var commits []*GitCommit
-	var logs []string
+	var errs []error
 
 	for _, dir := range dirs {
 		output, err := GitInfo(dir)
 		if err != nil {
-			logs = append(logs, fmt.Sprintf("could not find git history in %s %v", dir, err))
+			errs = append(errs, fmt.Errorf("could not find git history in %s %v", dir, err))
 			continue
 		}
 
 		formattedCommits, err := FormatCommit(dir, output)
 		if err != nil {
-			logs = append(logs, fmt.Sprintf("could not find git history in %s %v", dir, err))
+			errs = append(errs, fmt.Errorf("could not format commit infomation in %s %v", dir, err))
 			continue
 		}
 
 		commits = append(commits, formattedCommits...)
 	}
 
-	if len(logs) > 0 {
-		return commits, logs
+	if len(errs) > 0 {
+		return commits, errs
 	}
 
 	return commits, nil

@@ -47,10 +47,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	commits, logs := data.CollectCommits(dirs)
-	if len(logs) > 0 && cfg.LogMessages {
-		for _, log := range logs {
-			slog.Warn("does this repository have any commits?", "error", log)
+	commits, errs := data.CollectCommits(dirs)
+	if errs != nil && cfg.LogMessages {
+		for _, err := range errs {
+			slog.Warn("does this repository have any commits?", "error", err)
 		}
 	}
 
