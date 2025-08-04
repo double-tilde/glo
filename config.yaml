@@ -1,4 +1,10 @@
-ignore-directories:
+user_added_ignored_directories:
+  - this-dir-will-be-added-to-the-ignore-list
+
+user_excluded_ignored_directories:
+  - this-dir-will-not-be-ignored
+
+default_ignored_directories:
   - .android
   - .android-studio
   - .anjuta
@@ -216,4 +222,4 @@ ignore-directories:
   - .yarn
   - .yum
 
-log-messages: true
+log_messages: true

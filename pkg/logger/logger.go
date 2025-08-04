@@ -48,7 +48,7 @@ func (m *MultiHandler) WithGroup(name string) slog.Handler {
 
 func Setup(homeDir, dataHome, logFileName string) error {
 	logFilePath := filepath.Join(dataHome, logFileName)
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}

@@ -110,3 +110,19 @@ func WriteJSONFile(commits []*GitCommit, dataHome string) error {
 
 	return nil
 }
+
+func ReadJSONFile(dataHome string) ([]*GitCommit, error) {
+	var commits []*GitCommit
+	path := filepath.Join(dataHome, config.GloCommitsFile)
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.New("failed to read file")
+	}
+
+	if err := json.Unmarshal(data, &commits); err != nil {
+		return nil, errors.New("failed to unmarshal commits")
+	}
+
+	return commits, nil
+}

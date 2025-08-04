@@ -69,10 +69,10 @@ func FindGitDirs(cfg *config.Config, startingDir string) ([]string, error) {
 
 outside:
 	for _, content := range contents {
-		for _, ignoreDir := range cfg.IgnoreDirs {
-			if ignoreDir == content.Name() {
+		for _, ignoredDir := range cfg.IgnoredDirs {
+			if ignoredDir == content.Name() {
 				if cfg.LogMessages {
-					slog.Info("ignoring directory " + ignoreDir)
+					slog.Info("ignoring directory " + ignoredDir)
 				}
 				continue outside
 			}

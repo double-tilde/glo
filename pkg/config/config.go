@@ -24,8 +24,25 @@ var (
 )
 
 type Config struct {
-	IgnoreDirs      []string
+	IgnoredDirs  []string
 	LogMessages bool
+}
+
+func GetIgnoredDirs(original, added, remove []string) []string {
+	var total []string
+
+	total = append(total, original...)
+	total = append(total, added...)
+
+	for k, t := range total {
+		for _, r := range remove {
+			if t == r {
+				total = append(total[:k], total[k+1:]...)
+			}
+		}
+	}
+
+	return total
 }
 
 func Setup(configHome string) error {
@@ -46,7 +63,11 @@ func Setup(configHome string) error {
 
 func New() *Config {
 	return &Config{
-		IgnoreDirs:      viper.GetStringSlice("ignore-directories"),
-		LogMessages: viper.GetBool("log-messages"),
+		IgnoredDirs: GetIgnoredDirs(
+			viper.GetStringSlice("default_ignored_directories"),
+			viper.GetStringSlice("user_added_ignored_directories"),
+			viper.GetStringSlice("user_excluded_ignored_directories"),
+		),
+		LogMessages: viper.GetBool("log_messages"),
 	}
 }

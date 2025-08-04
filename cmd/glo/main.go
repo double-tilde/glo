@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -57,5 +58,14 @@ func main() {
 	err = data.WriteJSONFile(commits, dataHome)
 	if err != nil {
 		slog.Warn("warn", "error", err)
+	}
+
+	commits, err = data.ReadJSONFile(dataHome)
+	if err != nil {
+		slog.Warn("warn", "error", err)
+	}
+
+	for _, commit := range commits {
+		fmt.Println(commit.Date)
 	}
 }
