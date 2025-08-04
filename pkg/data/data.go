@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -125,4 +126,21 @@ func ReadJSONFile(dataHome string) ([]*GitCommit, error) {
 	}
 
 	return commits, nil
+}
+
+func GetYearOfCommits(commits []*GitCommit) []time.Time {
+	var recentCommits []time.Time
+	oneYearAgo := time.Now().AddDate(-1, 0, 0)
+
+	for _, commit := range commits {
+		if !commit.Date.Before(oneYearAgo) {
+			recentCommits = append(recentCommits, commit.Date)
+		}
+	}
+
+	sort.Slice(recentCommits, func(i, j int) bool {
+		return recentCommits[i].Before(recentCommits[j])
+	})
+
+	return recentCommits
 }

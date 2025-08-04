@@ -1,4 +1,3 @@
-// Package ui provides functionality for displaying different colors and layouts in the terminal.
 package ui
 
 import (
@@ -7,27 +6,15 @@ import (
 )
 
 // TODO: ui stuff will go here, this code is here to learn about go doc
-// Todo: what should PrintColor return? A string?
 
-// Color represents a color code for terminal text.
 type Color int
 
-// Supported terminal colors.
 const (
 	Red   Color = iota // Red color code
 	Green              // Green color code
 	Blue               // Blue color code
 )
 
-// PrintColor prints a given text in the specified color.
-// Parameters:
-//
-//	text: the text to be printed.
-//	color: the color in which the text should be printed.
-//
-// Returns:
-//
-//	error: an error if the color is not supported or if printing fails.
 func PrintColor(text string, color Color) error {
 	switch color {
 	case Red:
@@ -40,4 +27,30 @@ func PrintColor(text string, color Color) error {
 		return errors.New("unsupported color or printing failure")
 	}
 	return nil
+}
+
+func Printing() {
+	// Green backgrounds
+	fmt.Println("\033[48;5;22m \033[0m")
+	fmt.Println("\033[48;5;34m \033[0m")
+	fmt.Println("\033[48;5;46m \033[0m")
+
+	// Blue backgrounds
+	fmt.Println("\033[48;5;18m \033[0m")
+	fmt.Println("\033[48;5;19m \033[0m")
+	fmt.Println("\033[48;5;21m \033[0m")
+
+	// Red backgrounds
+	fmt.Println("\033[48;5;52m \033[0m")
+	fmt.Println("\033[48;5;88m \033[0m")
+	fmt.Println("\033[48;5;124m \033[0m")
+
+	// var grid [][]string
+
+	for i := 0; i <= 7; i++ {
+		for j := 0; j <= 53; j++ {
+			fmt.Print("x")
+		}
+		fmt.Println()
+	}
 }

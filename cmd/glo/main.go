@@ -9,6 +9,7 @@ import (
 	"github.com/double-tilde/glo/pkg/data"
 	"github.com/double-tilde/glo/pkg/fs"
 	"github.com/double-tilde/glo/pkg/logger"
+	"github.com/double-tilde/glo/pkg/ui"
 )
 
 func main() {
@@ -65,7 +66,11 @@ func main() {
 		slog.Warn("warn", "error", err)
 	}
 
-	for _, commit := range commits {
-		fmt.Println(commit.Date)
+	sortedCommits := data.GetYearOfCommits(commits)
+
+	for _, v := range sortedCommits {
+		fmt.Println(v)
 	}
+
+	ui.Printing()
 }
