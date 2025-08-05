@@ -68,9 +68,9 @@ func main() {
 
 	sortedCommits := data.GetYearOfCommits(commits)
 
-	for _, v := range sortedCommits {
-		fmt.Println(v)
-	}
+	collectedDates := ui.CollectDates(sortedCommits)
 
-	ui.Printing()
+	for _, date := range collectedDates {
+		fmt.Println(date.Date, date.WeekNum, date.DayNum, date.Day, date.Commits)
+	}
 }
