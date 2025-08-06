@@ -68,9 +68,11 @@ func main() {
 
 	sortedCommits := data.GetYearOfCommits(commits)
 
-	collectedDates := ui.CollectDates(sortedCommits)
-
-	for _, date := range collectedDates {
-		fmt.Println(date.Date, date.WeekNum, date.DayNum, date.Day, date.Commits)
+	collectedDates, err := ui.CollectDates(sortedCommits)
+	if err != nil {
+		slog.Error("fatal", "error", err)
+		os.Exit(1)
 	}
+
+	fmt.Println(collectedDates)
 }
