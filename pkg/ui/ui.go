@@ -3,17 +3,19 @@ package ui
 import "fmt"
 
 func SortDates(displayDates []DisplayDate) [][]DisplayDate {
-	var updatedDisplayDates []DisplayDate
 	var updatedDisplayDatesMatrix [][]DisplayDate
+	addedDates := make(map[string]bool)
 
 	for i := range 7 {
+		var updatedDisplayDates []DisplayDate
 		for _, date := range displayDates {
-			if date.DayNum == i {
+			if date.DayNum == i && !addedDates[date.Date] {
 				updatedDisplayDates = append(updatedDisplayDates, date)
+				addedDates[date.Date] = true
 			}
 		}
+		updatedDisplayDatesMatrix = append(updatedDisplayDatesMatrix, updatedDisplayDates)
 	}
-	updatedDisplayDatesMatrix = append(updatedDisplayDatesMatrix, updatedDisplayDates)
 
 	return updatedDisplayDatesMatrix
 }
@@ -21,19 +23,19 @@ func SortDates(displayDates []DisplayDate) [][]DisplayDate {
 func Display(displayDates []DisplayDate) {
 	updatedDisplayDateMatrix := SortDates(displayDates)
 
-	for k := range updatedDisplayDateMatrix {
-		fmt.Println("new slice", k)
-		// for _, v := range sl {
-		// 	if v.Commits <= 0 {
-		// 		fmt.Print(" ")
-		// 	} else if v.Commits < 3 {
-		// 		fmt.Print("\033[48;5;22m \033[0m")
-		// 	} else if v.Commits < 7 {
-		// 		fmt.Print("\033[48;5;34m \033[0m")
-		// 	} else {
-		// 		fmt.Print("\033[48;5;46m \033[0m")
-		// 	}
-		// }
+	for _, sl := range updatedDisplayDateMatrix {
+		for _, v := range sl {
+			if v.Commits <= 0 {
+				fmt.Print("\033[38;5;234m◼\033[0m")
+			} else if v.Commits < 3 {
+				fmt.Print("\033[38;5;22m◼\033[0m")
+			} else if v.Commits < 7 {
+				fmt.Print("\033[38;5;34m◼\033[0m")
+			} else {
+				fmt.Print("\033[38;5;46m◼\033[0m")
+			}
+		}
+		fmt.Println()
 	}
 }
 
