@@ -2,7 +2,6 @@ package ui
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/double-tilde/glo/pkg/config"
@@ -86,7 +85,7 @@ func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 
 	_, oneYearAgoWeek := start.ISOWeek()
 	lastYear := start.Year()
-	fmt.Println(lastYear)
+
 	weeksInYear, err := GetWeeksInYear(lastYear)
 	if err != nil {
 		return nil, err

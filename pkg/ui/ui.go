@@ -1,5 +1,42 @@
 package ui
 
+import "fmt"
+
+func SortDates(displayDates []DisplayDate) [][]DisplayDate {
+	var updatedDisplayDates []DisplayDate
+	var updatedDisplayDatesMatrix [][]DisplayDate
+
+	for i := range 7 {
+		for _, date := range displayDates {
+			if date.DayNum == i {
+				updatedDisplayDates = append(updatedDisplayDates, date)
+			}
+		}
+	}
+	updatedDisplayDatesMatrix = append(updatedDisplayDatesMatrix, updatedDisplayDates)
+
+	return updatedDisplayDatesMatrix
+}
+
+func Display(displayDates []DisplayDate) {
+	updatedDisplayDateMatrix := SortDates(displayDates)
+
+	for k := range updatedDisplayDateMatrix {
+		fmt.Println("new slice", k)
+		// for _, v := range sl {
+		// 	if v.Commits <= 0 {
+		// 		fmt.Print(" ")
+		// 	} else if v.Commits < 3 {
+		// 		fmt.Print("\033[48;5;22m \033[0m")
+		// 	} else if v.Commits < 7 {
+		// 		fmt.Print("\033[48;5;34m \033[0m")
+		// 	} else {
+		// 		fmt.Print("\033[48;5;46m \033[0m")
+		// 	}
+		// }
+	}
+}
+
 // type Color int
 //
 // const (
