@@ -37,18 +37,26 @@ func GetWeeksInYear(lastYear int) (int, error) {
 	return lastYearWeeks, nil
 }
 
-func CalculateWeekNumber(day, start time.Time, oneYearAgoWeek, weeksInYear int) int {
-	_, dayWeek := day.ISOWeek()
+func GetRelWeekNum(curDate, startDate time.Time, startWeek, weeksInStartYear int) (int, error) {
+	_, curDateWeek := curDate.ISOWeek()
 
-	if dayWeek > oneYearAgoWeek {
-		dayWeek = dayWeek - oneYearAgoWeek
-	} else if dayWeek == oneYearAgoWeek && day.Year() == start.Year() {
-		dayWeek = 0
+	if curDateWeek > startWeek {
+		curDateWeek = curDateWeek - startWeek
+	} else if curDateWeek == startWeek && curDate.Year() == startDate.Year() {
+		curDateWeek = 0
 	} else {
-		dayWeek = (weeksInYear - oneYearAgoWeek) + dayWeek
+		curDateWeek = (weeksInStartYear - startWeek) + curDateWeek
 	}
 
-	return dayWeek
+	if curDate.Weekday().String() == "Sunday" {
+		curDateWeek += 1
+	}
+
+	if curDateWeek < 0 {
+		return curDateWeek, errors.New("invalid week")
+	}
+
+	return curDateWeek, nil
 }
 
 func CountCmitsForDay(sortedCmits []time.Time, day time.Time, cmitIdx int) (int, int) {
@@ -87,7 +95,11 @@ func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 	cmitIdx := 0
 	for day := start; !day.After(end); day = day.AddDate(0, 0, 1) {
 
-		dayWeek := CalculateWeekNumber(day, start, oneYearAgoWeek, weeksInYear)
+		dayWeek, err := GetRelWeekNum(day, start, oneYearAgoWeek, weeksInYear)
+		if err != nil {
+			return nil, err
+		}
+
 		cmitCount, newCmitIdx := CountCmitsForDay(sortedCmits, day, cmitIdx)
 		cmitIdx = newCmitIdx
 

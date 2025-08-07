@@ -74,5 +74,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(collectedDates)
+	for _, date := range collectedDates {
+		fmt.Println(date.WeekNum, date.DayNum, date.Commits, date.Day, date.Date)
+	}
 }
