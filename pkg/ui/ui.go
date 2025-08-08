@@ -26,7 +26,7 @@ func Display(displayDates []DisplayDate) {
 	for _, sl := range updatedDisplayDateMatrix {
 		for _, v := range sl {
 			if v.Commits <= 0 {
-				fmt.Print("\033[38;5;234m◼\033[0m")
+				fmt.Print("\033[38;5;236m◼\033[0m")
 			} else if v.Commits < 3 {
 				fmt.Print("\033[38;5;22m◼\033[0m")
 			} else if v.Commits < 7 {

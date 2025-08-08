@@ -78,9 +78,21 @@ func CountCmitsForDay(sortedCmits []time.Time, day time.Time, cmitIdx int) (int,
 	return cmitCount, cmitIdx
 }
 
+func getSundayAYearAgo(start time.Time) time.Time {
+	if start.Weekday() == time.Sunday {
+		return start
+	}
+
+	start = start.AddDate(0, 0, -1)
+	start = getSundayAYearAgo(start)
+
+	return start
+}
+
 func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 	var collectedDates []DisplayDate
-	start := time.Now().AddDate(-1, 0, 0)
+	startDay := time.Now().AddDate(-1, 0, 0)
+	start := getSundayAYearAgo(startDay)
 	end := time.Now()
 
 	_, oneYearAgoWeek := start.ISOWeek()

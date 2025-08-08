@@ -222,4 +222,4 @@ default_ignored_directories:
   - .yarn
   - .yum
 
-log_messages: true
+log_messages: false
