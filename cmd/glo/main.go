@@ -67,13 +67,13 @@ func main() {
 
 	sortedCommits := data.GetYearOfCommits(commits)
 
-	collectedDates, err := ui.CollectDates(sortedCommits)
+	collectedDates, monthLabels, err := ui.CollectDates(sortedCommits)
 	if err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)
 	}
 
-	err = ui.Display(collectedDates)
+	err = ui.Display(collectedDates, monthLabels)
 	if err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)

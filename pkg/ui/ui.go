@@ -1,13 +1,8 @@
 package ui
 
 import (
-	"errors"
 	"fmt"
 	"math"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -23,23 +18,16 @@ var (
 	daysInWeek = 7
 )
 
-func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int, map[string]int) {
+func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
 	var updatedDisplayDatesMatrix [][]DisplayDate
 	addedDates := make(map[string]bool)
 	mostCommits := 0
-	months := make(map[string]int)
 
 	for day := range daysInWeek {
 		var updatedDisplayDates []DisplayDate
 		for _, date := range displayDates {
 			if date.DayNum == day && !addedDates[date.Date] {
 				addedDates[date.Date] = true
-
-				if _, ok := months[date.Date[0:7]]; ok {
-					months[date.Date[0:7]] += 1
-				} else {
-					months[date.Date[0:7]] = 0
-				}
 
 				updatedDisplayDates = append(updatedDisplayDates, date)
 
@@ -51,44 +39,20 @@ func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int, map[string]int
 		updatedDisplayDatesMatrix = append(updatedDisplayDatesMatrix, updatedDisplayDates)
 	}
 
-	return updatedDisplayDatesMatrix, mostCommits, months
+	return updatedDisplayDatesMatrix, mostCommits
 }
 
-func Display(displayDates []DisplayDate) error {
-	updatedDisplayDateMatrix, mostCommits, months := SortDates(displayDates)
-
-	result := []string{}
-
-	keys := make([]string, 0, len(months))
-	for k := range months {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		monthNum, err := strconv.Atoi(k[5:])
-		if err != nil {
-			return errors.New("cannot get valid month number")
-		}
-
-		monthName := time.Month(monthNum).String()
-		monthNameLetter := strings.ToLower(string(monthName[0]))
-		weeks := math.Round(float64(months[k]) / 7)
-		result = append(result, monthNameLetter)
-
-		for i := 1; i < int(weeks); i++ {
-			result = append(result, " ")
-		}
-	}
-
-	third := int(math.Floor(float64(mostCommits) / 100 * 33))
-	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
+func Display(displayDates []DisplayDate, monthLabels []string) error {
+	updatedDisplayDateMatrix, mostCommits := SortDates(displayDates)
 
 	fmt.Print("  ")
-	for _, month := range result {
+	for _, month := range monthLabels {
 		fmt.Print(month)
 	}
 	fmt.Println()
+
+	third := int(math.Floor(float64(mostCommits) / 100 * 33))
+	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
 
 	for weekDayNumber, displayDateDay := range updatedDisplayDateMatrix {
 		fmt.Print(daysInWeekLabels[weekDayNumber])

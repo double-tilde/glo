@@ -2,6 +2,8 @@ package ui
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/double-tilde/glo/pkg/config"
@@ -89,7 +91,33 @@ func getSundayAYearAgo(start time.Time) time.Time {
 	return start
 }
 
-func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
+func createMonthLabels(dates []DisplayDate) ([]string, error) {
+	var months []string
+	var lastMonth string
+
+	for _, date := range dates {
+		if date.DayNum == 0 {
+			monthNum, err := strconv.Atoi(date.Date[5:7])
+			if err != nil {
+				return nil, errors.New("cannot get valid month number")
+			}
+
+			monthName := time.Month(monthNum).String()
+			monthNameLetter := strings.ToLower(string(monthName[0]))
+
+			if monthName != lastMonth {
+				months = append(months, monthNameLetter)
+				lastMonth = monthName
+			} else {
+				months = append(months, " ")
+			}
+		}
+	}
+
+	return months, nil
+}
+
+func CollectDates(sortedCmits []time.Time) ([]DisplayDate, []string, error) {
 	var collectedDates []DisplayDate
 	startDay := time.Now().AddDate(-1, 0, 0)
 	start := getSundayAYearAgo(startDay)
@@ -100,7 +128,7 @@ func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 
 	weeksInYear, err := GetWeeksInYear(lastYear)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	cmitIdx := 0
@@ -108,7 +136,7 @@ func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 
 		dayWeek, err := GetRelWeekNum(day, start, oneYearAgoWeek, weeksInYear)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		cmitCount, newCmitIdx := CountCmitsForDay(sortedCmits, day, cmitIdx)
@@ -119,5 +147,10 @@ func CollectDates(sortedCmits []time.Time) ([]DisplayDate, error) {
 		collectedDates = append(collectedDates, collectedDate)
 	}
 
-	return collectedDates, nil
+	monthLabels, err := createMonthLabels(collectedDates)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return collectedDates, monthLabels, nil
 }
