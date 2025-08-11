@@ -73,5 +73,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	ui.Display(collectedDates)
+	err = ui.Display(collectedDates)
+	if err != nil {
+		slog.Error("fatal", "error", err)
+		os.Exit(1)
+	}
 }
