@@ -1,35 +1,48 @@
 package ui
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
-func SortDates(displayDates []DisplayDate) [][]DisplayDate {
+const daysInWeek = 7
+
+func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
 	var updatedDisplayDatesMatrix [][]DisplayDate
 	addedDates := make(map[string]bool)
+	mostCommits := 0
 
-	for i := range 7 {
+	for i := range daysInWeek {
 		var updatedDisplayDates []DisplayDate
 		for _, date := range displayDates {
 			if date.DayNum == i && !addedDates[date.Date] {
 				updatedDisplayDates = append(updatedDisplayDates, date)
-				addedDates[date.Date] = true
+				if date.Commits > mostCommits {
+					mostCommits = date.Commits
+				}
 			}
 		}
 		updatedDisplayDatesMatrix = append(updatedDisplayDatesMatrix, updatedDisplayDates)
 	}
 
-	return updatedDisplayDatesMatrix
+	return updatedDisplayDatesMatrix, mostCommits
 }
 
 func Display(displayDates []DisplayDate) {
-	updatedDisplayDateMatrix := SortDates(displayDates)
+	updatedDisplayDateMatrix, mostCommits := SortDates(displayDates)
 
-	for _, sl := range updatedDisplayDateMatrix {
-		for _, v := range sl {
-			if v.Commits <= 0 {
+	third := int(math.Floor(float64(mostCommits) / 100 * 33))
+	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
+
+	fmt.Println(mostCommits, third, twoThirds)
+
+	for _, displayDateDay := range updatedDisplayDateMatrix {
+		for _, day := range displayDateDay {
+			if day.Commits <= 0 {
 				fmt.Print("\033[38;5;236m◼\033[0m")
-			} else if v.Commits < 3 {
+			} else if day.Commits < third {
 				fmt.Print("\033[38;5;22m◼\033[0m")
-			} else if v.Commits < 7 {
+			} else if day.Commits < twoThirds {
 				fmt.Print("\033[38;5;34m◼\033[0m")
 			} else {
 				fmt.Print("\033[38;5;46m◼\033[0m")
