@@ -24,8 +24,9 @@ var (
 )
 
 type Config struct {
-	IgnoredDirs  []string
+	IgnoredDirs []string
 	LogMessages bool
+	Color string
 }
 
 func GetIgnoredDirs(original, added, remove []string) []string {
@@ -69,5 +70,6 @@ func New() *Config {
 			viper.GetStringSlice("user_excluded_ignored_directories"),
 		),
 		LogMessages: viper.GetBool("log_messages"),
+		Color: viper.GetString("color"),
 	}
 }

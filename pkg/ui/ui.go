@@ -3,9 +3,17 @@ package ui
 import (
 	"fmt"
 	"math"
+
+	"github.com/double-tilde/glo/pkg/config"
+)
+
+const (
+	Gray  = "\033[38;5;236m"
+	Reset = "\033[0m"
 )
 
 var (
+	block            = "◼"
 	daysInWeekLabels = []string{
 		"  ",
 		"m ",
@@ -17,6 +25,19 @@ var (
 	}
 	daysInWeek = 7
 )
+
+func setColor(cfg *config.Config) (string, string, string) {
+	if cfg.Color == "red" {
+		return "\033[38;5;52m", "\033[38;5;88m", "\033[38;5;124m"
+	}
+
+	if cfg.Color == "blue" {
+		return "\033[38;5;17m", "\033[38;5;19m", "\033[38;5;21m"
+	}
+
+	// default: green
+	return "\033[38;5;22m", "\033[38;5;34m", "\033[38;5;46m"
+}
 
 func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
 	var updatedDisplayDatesMatrix [][]DisplayDate
@@ -42,8 +63,11 @@ func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
 	return updatedDisplayDatesMatrix, mostCommits
 }
 
-func Display(displayDates []DisplayDate, monthLabels []string) error {
+func Display(cfg *config.Config, displayDates []DisplayDate, monthLabels []string) error {
 	updatedDisplayDateMatrix, mostCommits := SortDates(displayDates)
+	third := int(math.Floor(float64(mostCommits) / 100 * 33))
+	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
+	dark, medium, light := setColor(cfg)
 
 	fmt.Print("  ")
 	for _, month := range monthLabels {
@@ -51,20 +75,17 @@ func Display(displayDates []DisplayDate, monthLabels []string) error {
 	}
 	fmt.Println()
 
-	third := int(math.Floor(float64(mostCommits) / 100 * 33))
-	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
-
 	for weekDayNumber, displayDateDay := range updatedDisplayDateMatrix {
 		fmt.Print(daysInWeekLabels[weekDayNumber])
 		for _, day := range displayDateDay {
 			if day.Commits <= 0 {
-				fmt.Print("\033[38;5;236m◼\033[0m")
+				fmt.Print(Gray + block + Reset)
 			} else if day.Commits < third {
-				fmt.Print("\033[38;5;22m◼\033[0m")
+				fmt.Print(dark + block + Reset)
 			} else if day.Commits < twoThirds {
-				fmt.Print("\033[38;5;34m◼\033[0m")
+				fmt.Print(medium + block + Reset)
 			} else {
-				fmt.Print("\033[38;5;46m◼\033[0m")
+				fmt.Print(light + block + Reset)
 			}
 		}
 		fmt.Println()
@@ -72,42 +93,3 @@ func Display(displayDates []DisplayDate, monthLabels []string) error {
 
 	return nil
 }
-
-// type Color int
-//
-// const (
-// 	Red   Color = iota // Red color code
-// 	Green              // Green color code
-// 	Blue               // Blue color code
-// )
-//
-// func PrintColor(text string, color Color) error {
-// 	switch color {
-// 	case Red:
-// 		fmt.Print("\033[31m" + text + "\033[0m")
-// 	case Green:
-// 		fmt.Print("\033[32m" + text + "\033[0m")
-// 	case Blue:
-// 		fmt.Print("\033[34m" + text + "\033[0m")
-// 	default:
-// 		return errors.New("unsupported color or printing failure")
-// 	}
-// 	return nil
-// }
-//
-// func Printing() {
-// 	// Green backgrounds
-// 	fmt.Println("\033[48;5;22m \033[0m")
-// 	fmt.Println("\033[48;5;34m \033[0m")
-// 	fmt.Println("\033[48;5;46m \033[0m")
-//
-// 	// Blue backgrounds
-// 	fmt.Println("\033[48;5;18m \033[0m")
-// 	fmt.Println("\033[48;5;19m \033[0m")
-// 	fmt.Println("\033[48;5;21m \033[0m")
-//
-// 	// Red backgrounds
-// 	fmt.Println("\033[48;5;52m \033[0m")
-// 	fmt.Println("\033[48;5;88m \033[0m")
-// 	fmt.Println("\033[48;5;124m \033[0m")
-// }
