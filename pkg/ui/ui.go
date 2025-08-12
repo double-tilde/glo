@@ -13,7 +13,6 @@ const (
 )
 
 var (
-	block            = "◼"
 	daysInWeekLabels = []string{
 		"  ",
 		"m ",
@@ -26,7 +25,31 @@ var (
 	daysInWeek = 7
 )
 
-func setColor(cfg *config.Config) (string, string, string) {
+func getShape(cfg *config.Config) string {
+	defShape := "◼"
+
+	if cfg.Shape == "circle" {
+		return "●"
+	}
+
+	if cfg.Shape == "dot" {
+		return "·"
+	}
+
+	if cfg.Shape == "diamond" {
+		return "◆"
+	}
+
+	if cfg.Shape == "square" {
+		return defShape
+	}
+
+	return defShape
+}
+
+func getColors(cfg *config.Config) (string, string, string) {
+	defClr := []string{"\033[38;5;22m", "\033[38;5;34m", "\033[38;5;46m"}
+
 	if cfg.Color == "red" {
 		return "\033[38;5;52m", "\033[38;5;88m", "\033[38;5;124m"
 	}
@@ -35,8 +58,11 @@ func setColor(cfg *config.Config) (string, string, string) {
 		return "\033[38;5;17m", "\033[38;5;19m", "\033[38;5;21m"
 	}
 
-	// default: green
-	return "\033[38;5;22m", "\033[38;5;34m", "\033[38;5;46m"
+	if cfg.Color == "green" {
+		return defClr[0], defClr[1], defClr[2]
+	}
+
+	return defClr[0], defClr[1], defClr[2]
 }
 
 func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
@@ -65,9 +91,12 @@ func SortDates(displayDates []DisplayDate) ([][]DisplayDate, int) {
 
 func Display(cfg *config.Config, displayDates []DisplayDate, monthLabels []string) error {
 	updatedDisplayDateMatrix, mostCommits := SortDates(displayDates)
+
 	third := int(math.Floor(float64(mostCommits) / 100 * 33))
 	twoThirds := int(math.Floor(float64(mostCommits) / 100 * 66))
-	dark, medium, light := setColor(cfg)
+
+	dark, medium, light := getColors(cfg)
+	block := getShape(cfg)
 
 	fmt.Print("  ")
 	for _, month := range monthLabels {

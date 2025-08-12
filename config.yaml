@@ -1,3 +1,9 @@
+log_messages: false
+
+color: green
+
+shape: square
+
 user_added_ignored_directories:
   - this-dir-will-be-added-to-the-ignore-list
 
@@ -221,7 +227,3 @@ default_ignored_directories:
   - .xcode
   - .yarn
   - .yum
-
-log_messages: false
-
-color: green
